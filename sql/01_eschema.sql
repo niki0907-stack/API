@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS productos (
  id INT AUTO_INCREMENT PRIMARY KEY,
  nombre VARCHAR(100) NOT NULL,
  precio DECIMAL(12,2) NOT NULL CHECK (precio > 0),
-ADSO · Taller práctico N.º 3 | FastAPI + MySQL/MariaDB
  stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0)
 ) ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS pedidos (
@@ -31,5 +30,8 @@ CREATE TABLE IF NOT EXISTS detalle_pedidos (
  FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
  FOREIGN KEY (producto_id) REFERENCES productos(id)
 ) ENGINE=InnoDB;
--- A la cuenta de la API se le conceden permisos desde una conexión administrativa:
+
+CREATE USER IF NOT EXISTS 'api_adso'@'localhost' IDENTIFIED BY 'Adso_2026_Cambiar!';
+
+-- 4. Otorgar permisos sobre la base de datos
 GRANT SELECT, INSERT, UPDATE, DELETE ON tienda_adso.* TO 'api_adso'@'localhost';
