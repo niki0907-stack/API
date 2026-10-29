@@ -105,5 +105,25 @@ def detalle(pedido_id: int):
 
 
 
-
-
+@router.patch('/{pedido_id}/estado')
+def actualizar_estado(pedido_id: int, datos: PedidoEstadoActualizar):
+    if datos.estado.strip().lower() == 'cancelado':
+        raise HTTPException(
+            422,
+            'Use POST /pedidos/{pedido_id}/cancelar para cancelar y devolver el stock'
+        )
+    with conectar() as db:
+        with db.cursor() as cur:
+            cur.execute(
+                'UPDATE pedidos SET estado = %s WHERE id = %s',
+                (datos.estado, pedido_id)
+            )
+            if cur.rowcount == 0:
+                cur.execute('SELECT id FROM pedidos WHERE id = %s', (pedido_id,))
+                if cur.fetchone() is None:
+                    raise HTTPException(404, 'Pedido no encontrado')
+            cur.execute(
+                'SELECT id, cliente_id, fecha, estado, total FROM pedidos WHERE id = %s',
+                (pedido_id,)
+            )
+            return cur.fetchone()
