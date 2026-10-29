@@ -127,3 +127,51 @@ def actualizar_estado(pedido_id: int, datos: PedidoEstadoActualizar):
                 (pedido_id,)
             )
             return cur.fetchone()
+        
+
+@router.post('/{pedido_id}/cancelar')
+def cancelar(pedido_id: int):
+    # El bloqueo impide que dos solicitudes cancelen y devuelvan stock a la vez.
+    with conectar() as db:
+        with db.cursor() as cur:
+            cur.execute(
+                'SELECT id, estado FROM pedidos WHERE id = %s FOR UPDATE',
+                (pedido_id,)
+            )
+            pedido = cur.fetchone()
+            if pedido is None:
+                raise HTTPException(404, 'Pedido no encontrado')
+            if pedido['estado'] != 'confirmado':
+                raise HTTPException(409, 'El pedido ya fue cancelado o no está confirmado')
+
+            cur.execute(
+                '''
+                SELECT producto_id, cantidad
+                FROM detalle_pedidos
+                WHERE pedido_id = %s
+                ORDER BY producto_id
+                ''',
+                (pedido_id,)
+            )
+            detalles = cur.fetchall()
+
+            for detalle in detalles:
+                cur.execute(
+                    'UPDATE productos SET stock = stock + %s WHERE id = %s',
+                    (detalle['cantidad'], detalle['producto_id'])
+                )
+                if cur.rowcount == 0:
+                    raise HTTPException(
+                        409,
+                        f"No se pudo devolver el stock del producto {detalle['producto_id']}"
+                    )
+
+            cur.execute(
+                "UPDATE pedidos SET estado = 'cancelado' WHERE id = %s",
+                (pedido_id,)
+            )
+            return {
+                'mensaje': 'Pedido cancelado y stock devuelto',
+                'pedido_id': pedido_id,
+                'estado': 'cancelado'
+            }
