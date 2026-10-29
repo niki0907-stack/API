@@ -17,3 +17,6 @@ class ItemPedido(BaseModel):
 class PedidoCrear(BaseModel):
   cliente_id: int = Field(gt=0)
   items: list[ItemPedido] = Field(min_length=1)
+
+class PedidoEstadoActualizar(BaseModel):
+  estado: str = Field(min_length=1, max_length=20)

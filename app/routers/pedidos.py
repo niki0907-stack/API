@@ -1,7 +1,7 @@
 from decimal import Decimal
 from fastapi import APIRouter, HTTPException
 from app.database import conectar
-from app.schemas import PedidoCrear
+from app.schemas import PedidoCrear, PedidoEstadoActualizar
 
 router = APIRouter(prefix='/pedidos', tags=['Pedidos'])
 
@@ -102,3 +102,8 @@ def detalle(pedido_id: int):
             
             pedido['items'] = cur.fetchall()
             return pedido
+
+
+
+
+

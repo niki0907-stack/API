@@ -36,3 +36,33 @@ def crear(datos: ClienteCrear):
                 return cur.fetchone()
     except IntegrityError as exc:
         raise HTTPException(409, 'Correo ya registrado') from exc
+
+
+
+@router.get('/{cliente_id}/pedidos')
+def listar_pedidos_confirmados(cliente_id: int):
+    with conectar() as db:
+        with db.cursor() as cur:
+            cur.execute('SELECT id FROM clientes WHERE id = %s', (cliente_id,))
+            if cur.fetchone() is None:
+                raise HTTPException(404, 'Cliente no encontrado')
+
+            cur.execute(
+                '''
+                SELECT id, fecha, estado, total
+                FROM pedidos
+                WHERE cliente_id = %s AND estado = %s
+                ORDER BY fecha DESC, id DESC
+                ''',
+                (cliente_id, 'confirmado')
+            )
+            pedidos = cur.fetchall()
+
+            if not pedidos:
+                return {"mensaje": f"El usuario con ID {cliente_id} no tiene pedido alguno"}
+
+            return pedidos
+
+
+
+
