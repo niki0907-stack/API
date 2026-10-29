@@ -30,8 +30,4 @@ CREATE TABLE IF NOT EXISTS detalle_pedidos (
  FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
  FOREIGN KEY (producto_id) REFERENCES productos(id)
 ) ENGINE=InnoDB;
-
-CREATE USER IF NOT EXISTS 'api_adso'@'localhost' IDENTIFIED BY 'Adso_2026_Cambiar!';
-
--- 4. Otorgar permisos sobre la base de datos
 GRANT SELECT, INSERT, UPDATE, DELETE ON tienda_adso.* TO 'api_adso'@'localhost';
