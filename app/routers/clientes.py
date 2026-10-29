@@ -64,5 +64,20 @@ def listar_pedidos_confirmados(cliente_id: int):
             return pedidos
 
 
+@router.put('/{cliente_id}', response_model=ClienteRespuesta)
+def actualizar(cliente_id: int, datos: ClienteCrear):
+    try:
+        with conectar() as db:
+            with db.cursor() as cur:
+                cur.execute('SELECT id FROM clientes WHERE id = %s', (cliente_id,))
+                if cur.fetchone() is None:
+                    raise HTTPException(404, 'Cliente no encontrado')
 
-
+                cur.execute(
+                    'UPDATE clientes SET nombre = %s, correo = %s WHERE id = %s',
+                    (datos.nombre, str(datos.correo), cliente_id)
+                )
+                cur.execute('SELECT * FROM clientes WHERE id = %s', (cliente_id,))
+                return cur.fetchone()
+    except IntegrityError as exc:
+        raise HTTPException(409, 'Correo ya registrado') from exc
