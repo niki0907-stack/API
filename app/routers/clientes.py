@@ -81,3 +81,21 @@ def actualizar(cliente_id: int, datos: ClienteCrear):
                 return cur.fetchone()
     except IntegrityError as exc:
         raise HTTPException(409, 'Correo ya registrado') from exc
+
+
+@router.delete('/{cliente_id}')
+def eliminar(cliente_id: int):
+    try:
+        with conectar() as db:
+            with db.cursor() as cur:
+                cur.execute('SELECT id FROM clientes WHERE id = %s', (cliente_id,))
+                if cur.fetchone() is None:
+                    raise HTTPException(404, 'Cliente no encontrado')
+
+                cur.execute('DELETE FROM clientes WHERE id = %s', (cliente_id,))
+                return {'mensaje': 'Cliente eliminado correctamente', 'cliente_id': cliente_id}
+    except IntegrityError as exc:
+        raise HTTPException(
+            409,
+            'No se puede eliminar el cliente porque tiene pedidos asociados'
+        ) from exc
